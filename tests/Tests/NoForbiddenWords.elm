@@ -54,6 +54,94 @@ main = Debug.todo ""
                     |> Review.Test.expectErrors
                         [ forbiddenWordError "- [ ]"
                         ]
+        , test "reports forbidden words in module documentation" <|
+            \() ->
+                """
+module A exposing (..)
+{-| Module A
+
+TODO: Write the documentation
+-}
+import Foo
+
+main = Debug.todo ""
+"""
+                    |> Review.Test.run (rule [ "TODO" ])
+                    |> Review.Test.expectErrors
+                        [ forbiddenWordError "TODO"
+                        ]
+        , test "reports forbidden words in function documentation" <|
+            \() ->
+                """
+module A exposing (..)
+{-| Module A
+-}
+import Foo
+
+{-| Main
+
+TODO: Write the documentation
+-}
+main = Debug.todo ""
+"""
+                    |> Review.Test.run (rule [ "TODO" ])
+                    |> Review.Test.expectErrors
+                        [ forbiddenWordError "TODO"
+                        ]
+        , test "reports forbidden words in type documentation" <|
+            \() ->
+                """
+module A exposing (..)
+import Foo
+
+{-| Page
+
+TODO: Add more pages
+-}
+type Page
+    = Page
+
+main = Debug.todo ""
+"""
+                    |> Review.Test.run (rule [ "TODO" ])
+                    |> Review.Test.expectErrors
+                        [ forbiddenWordError "TODO"
+                        ]
+        , test "reports forbidden words in type alias documentation" <|
+            \() ->
+                """
+module A exposing (..)
+import Foo
+
+{-| Page
+
+TODO: Add footer
+-}
+type alias Page =
+    { title : String, body : List (Html msg) }
+
+main = Debug.todo ""
+"""
+                    |> Review.Test.run (rule [ "TODO" ])
+                    |> Review.Test.expectErrors
+                        [ forbiddenWordError "TODO"
+                        ]
+        , test "reports forbidden words in port documentation" <|
+            \() ->
+                """
+port module Ports exposing (..)
+import Foo
+
+{-| Save
+
+TODO: Use Json.Encode.Value here.
+-}
+port save : String -> Cmd Msg
+"""
+                    |> Review.Test.run (rule [ "TODO" ])
+                    |> Review.Test.expectErrors
+                        [ forbiddenWordError "TODO"
+                        ]
         ]
 
 
