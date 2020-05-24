@@ -6,6 +6,7 @@ module NoForbiddenWords exposing (rule)
 
 -}
 
+import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
 import Review.Rule as Rule exposing (Rule)
@@ -38,6 +39,7 @@ rule : List String -> Rule
 rule words =
     Rule.newModuleRuleSchema "NoForbiddenWords" ()
         |> Rule.withSimpleCommentsVisitor (commentsVisitor words)
+        |> Rule.withSimpleDeclarationVisitor (declarationVisitor words)
         |> Rule.fromModuleRuleSchema
 
 
@@ -47,11 +49,38 @@ rule words =
 
 commentsVisitor : List String -> List (Node String) -> List (Rule.Error {})
 commentsVisitor words comments =
-    List.concatMap (\word -> List.concatMap (reviewComment word) comments) words
+    List.concatMap (commentVisitor words) comments
 
 
-reviewComment : String -> Node String -> List (Rule.Error {})
-reviewComment word comment =
+declarationVisitor : List String -> Node Declaration -> List (Rule.Error {})
+declarationVisitor words (Node _ declaration) =
+    case declaration of
+        Declaration.FunctionDeclaration { documentation } ->
+            documentation
+                |> Maybe.map (commentVisitor words)
+                |> Maybe.withDefault []
+
+        Declaration.CustomTypeDeclaration { documentation } ->
+            documentation
+                |> Maybe.map (commentVisitor words)
+                |> Maybe.withDefault []
+
+        Declaration.AliasDeclaration { documentation } ->
+            documentation
+                |> Maybe.map (commentVisitor words)
+                |> Maybe.withDefault []
+
+        _ ->
+            []
+
+
+commentVisitor : List String -> Node String -> List (Rule.Error {})
+commentVisitor words comment =
+    List.concatMap (checkForbiddenWord comment) words
+
+
+checkForbiddenWord : Node String -> String -> List (Rule.Error {})
+checkForbiddenWord comment word =
     ranges word comment
         |> List.map (forbiddenWordError word)
 
