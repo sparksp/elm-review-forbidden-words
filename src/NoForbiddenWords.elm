@@ -12,7 +12,7 @@ import Elm.Syntax.Range exposing (Range)
 import Review.Rule as Rule exposing (Rule)
 
 
-{-| Forbid certain words in comments.
+{-| Forbid certain words in comments and README.
 
     config : List Rule
     config =
@@ -26,6 +26,9 @@ Based on the configured words `TODO` and `- [ ]` the following examples would fa
 
     -- TODO: Finish writing this function
 
+
+
+Multi-line comments `{- ... -}` and documentation `{-| ... -}` also work:
 
 
 
