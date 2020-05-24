@@ -1,6 +1,8 @@
 module Tests.NoForbiddenWords exposing (all)
 
 import NoForbiddenWords exposing (rule)
+import Review.Project as Project exposing (Project)
+import Review.Rule
 import Review.Test
 import Test exposing (Test, describe, test)
 
@@ -142,6 +144,51 @@ port save : String -> Cmd Msg
                     |> Review.Test.expectErrors
                         [ forbiddenWordError "TODO"
                         ]
+        , test "checks forbidden words in README.md" <|
+            \() ->
+                let
+                    project : Project
+                    project =
+                        Project.new
+                            |> Project.addReadme
+                                { path = "README.md"
+                                , content = """
+# My Awesome Project
+
+TODO: Write the readme
+"""
+                                }
+                in
+                """
+module A exposing (..)
+a = 1"""
+                    |> Review.Test.runWithProjectData project (rule [ "TODO" ])
+                    |> Review.Test.expectErrorsForReadme
+                        [ forbiddenWordError "TODO"
+                        ]
+        , test "forbidden words in README.md can be ignored" <|
+            \() ->
+                let
+                    project : Project
+                    project =
+                        Project.new
+                            |> Project.addReadme
+                                { path = "README.md"
+                                , content = """
+# My Awesome Project
+
+TODO: Write the readme
+"""
+                                }
+                in
+                """
+module A exposing (..)
+a = 1"""
+                    |> Review.Test.runWithProjectData project
+                        (rule [ "TODO" ]
+                            |> Review.Rule.ignoreErrorsForFiles [ "README.md" ]
+                        )
+                    |> Review.Test.expectNoErrors
         ]
 
 

@@ -37,14 +37,71 @@ Based on the configured words `TODO` and `- [ ]` the following examples would fa
 -}
 rule : List String -> Rule
 rule words =
-    Rule.newModuleRuleSchema "NoForbiddenWords" ()
+    Rule.newProjectRuleSchema "NoForbiddenWords" ()
+        |> Rule.withReadmeProjectVisitor (readmeVisitor words)
+        |> Rule.withModuleVisitor (moduleVisitor words)
+        |> Rule.withModuleContext
+            { fromModuleToProject = \_ _ () -> ()
+            , fromProjectToModule = \_ _ () -> ()
+            , foldProjectContexts = \() () -> ()
+            }
+        |> Rule.fromProjectRuleSchema
+
+
+
+--- PROJECT
+
+
+readmeVisitor : List String -> Maybe { readmeKey : Rule.ReadmeKey, content : String } -> () -> ( List (Rule.Error scope), () )
+readmeVisitor words maybeReadme () =
+    case maybeReadme of
+        Nothing ->
+            ( [], () )
+
+        Just readme ->
+            ( List.concatMap (checkForbiddenReadmeWord readme) words
+            , ()
+            )
+
+
+checkForbiddenReadmeWord : { readmeKey : Rule.ReadmeKey, content : String } -> String -> List (Rule.Error scope)
+checkForbiddenReadmeWord { readmeKey, content } word =
+    ranges word (readmeNode content)
+        |> List.map (forbiddenReadmeWordError readmeKey word)
+
+
+readmeNode : String -> Node String
+readmeNode content =
+    Node
+        { start = { row = 1, column = 1 }
+        , end = { row = 1, column = 1 }
+        }
+        content
+
+
+forbiddenReadmeWordError : Rule.ReadmeKey -> String -> Range -> Rule.Error scope
+forbiddenReadmeWordError readmeKey word range =
+    Rule.errorForReadme readmeKey
+        { message = "`" ++ word ++ "` is not allowed comments."
+        , details =
+            [ "You should review this comment and make sure the forbidden word has been removed before publishing your code."
+            ]
+        }
+        range
+
+
+
+--- MODULE
+
+
+moduleVisitor :
+    List String
+    -> Rule.ModuleRuleSchema {} ()
+    -> Rule.ModuleRuleSchema { hasAtLeastOneVisitor : () } ()
+moduleVisitor words schema =
+    schema
         |> Rule.withSimpleCommentsVisitor (commentsVisitor words)
         |> Rule.withSimpleDeclarationVisitor (declarationVisitor words)
-        |> Rule.fromModuleRuleSchema
-
-
-
---- PRIVATE
 
 
 commentsVisitor : List String -> List (Node String) -> List (Rule.Error {})
