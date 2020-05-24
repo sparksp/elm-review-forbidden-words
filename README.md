@@ -7,8 +7,6 @@
 
 An [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rule to forbid certain words in comments and README.
 
-**WARNING!** Under construction, the API is likely to change!
-
 ## Example Configuration
 
 ```elm
@@ -20,6 +18,8 @@ config =
     [ NoForbiddenWords.rule [ "TODO", "- [ ]" ]
     ]
 ```
+
+Note: We search for the exact string that you enter, so if you're looking for "TODO" we won't report "todo".
 
 ## Failure Examples
 
@@ -43,7 +43,7 @@ Based on the configured words `"TODO"` and `"- [ ]"` the following examples woul
 
 ## Ignore README.md
 
-If you do not want to check for forbidden words in your README file then you can ignore the README like this:
+You can easily ignore forbidden words in the README file like this:
 
 ```elm
 import NoForbiddenWords

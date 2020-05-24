@@ -12,7 +12,7 @@ import Elm.Syntax.Range exposing (Range)
 import Review.Rule as Rule exposing (Rule)
 
 
-{-| Forbid certain words in comments.
+{-| Forbid certain words in comments and README.
 
     config : List Rule
     config =
@@ -26,6 +26,9 @@ Based on the configured words `TODO` and `- [ ]` the following examples would fa
 
     -- TODO: Finish writing this function
 
+
+
+Multi-line comments `{- ... -}` and documentation `{-| ... -}` also work:
 
 
 
@@ -82,9 +85,9 @@ readmeNode content =
 forbiddenReadmeWordError : Rule.ReadmeKey -> String -> Range -> Rule.Error scope
 forbiddenReadmeWordError readmeKey word range =
     Rule.errorForReadme readmeKey
-        { message = "`" ++ word ++ "` is not allowed comments."
+        { message = "`" ++ word ++ "` is not allowed in README file."
         , details =
-            [ "You should review this comment and make sure the forbidden word has been removed before publishing your code."
+            [ "You should review this section and make sure the forbidden word has been removed before publishing your code."
             ]
         }
         range
@@ -179,7 +182,7 @@ ranges needle (Node range haystack) =
 forbiddenWordError : String -> Range -> Rule.Error {}
 forbiddenWordError word range =
     Rule.error
-        { message = "`" ++ word ++ "` is not allowed comments."
+        { message = "`" ++ word ++ "` is not allowed in comments."
         , details =
             [ "You should review this comment and make sure the forbidden word has been removed before publishing your code."
             ]
