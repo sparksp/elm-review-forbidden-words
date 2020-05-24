@@ -164,7 +164,7 @@ module A exposing (..)
 a = 1"""
                     |> Review.Test.runWithProjectData project (rule [ "TODO" ])
                     |> Review.Test.expectErrorsForReadme
-                        [ forbiddenWordError "TODO"
+                        [ forbiddenWordErrorForReadme "TODO"
                         ]
         , test "forbidden words in README.md can be ignored" <|
             \() ->
@@ -195,9 +195,20 @@ a = 1"""
 forbiddenWordError : String -> Review.Test.ExpectedError
 forbiddenWordError word =
     Review.Test.error
-        { message = "`" ++ word ++ "` is not allowed comments."
+        { message = "`" ++ word ++ "` is not allowed in comments."
         , details =
             [ "You should review this comment and make sure the forbidden word has been removed before publishing your code."
+            ]
+        , under = word
+        }
+
+
+forbiddenWordErrorForReadme : String -> Review.Test.ExpectedError
+forbiddenWordErrorForReadme word =
+    Review.Test.error
+        { message = "`" ++ word ++ "` is not allowed in README file."
+        , details =
+            [ "You should review this section and make sure the forbidden word has been removed before publishing your code."
             ]
         , under = word
         }
