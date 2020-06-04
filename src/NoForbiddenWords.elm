@@ -62,7 +62,7 @@ readmeVisitor words maybeReadme () =
             ( [], () )
 
         Just readme ->
-            ( List.concatMap (checkForbiddenReadmeWord readme) words
+            ( fastConcatMap (checkForbiddenReadmeWord readme) words
             , ()
             )
 
@@ -109,7 +109,7 @@ moduleVisitor words schema =
 
 commentsVisitor : List String -> List (Node String) -> List (Rule.Error {})
 commentsVisitor words comments =
-    List.concatMap (commentVisitor words) comments
+    fastConcatMap (commentVisitor words) comments
 
 
 declarationVisitor : List String -> Node Declaration -> List (Rule.Error {})
@@ -136,7 +136,7 @@ declarationVisitor words (Node _ declaration) =
 
 commentVisitor : List String -> Node String -> List (Rule.Error {})
 commentVisitor words comment =
-    List.concatMap (checkForbiddenWord comment) words
+    fastConcatMap (checkForbiddenWord comment) words
 
 
 checkForbiddenWord : Node String -> String -> List (Rule.Error {})
@@ -176,7 +176,7 @@ ranges needle (Node range haystack) =
                                 }
                         )
             )
-        |> List.concat
+        |> fastConcat
 
 
 forbiddenWordError : String -> Range -> Rule.Error {}
@@ -188,3 +188,17 @@ forbiddenWordError word range =
             ]
         }
         range
+
+
+
+--- List Performance
+
+
+fastConcat : List (List a) -> List a
+fastConcat =
+    List.foldr (++) []
+
+
+fastConcatMap : (a -> List b) -> List a -> List b
+fastConcatMap fn =
+    List.foldr (fn >> (++)) []
