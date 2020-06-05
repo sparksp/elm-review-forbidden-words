@@ -5,7 +5,7 @@ on:
     branches: [master]
 
 jobs:
-  elm-test:
+  test:
     runs-on: ubuntu-latest
 
     strategy:
@@ -47,12 +47,13 @@ jobs:
       - name: Run elm-test
         run: elm-test
 
-  elm-format:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
         with:
+          ref: ${{ github.head_ref }}
           submodules: recursive
       - name: Get yarn cache directory
         id: yarn-cache-dir
@@ -64,68 +65,57 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+      - uses: actions/cache@v1
+        id: elm-cache
+        with:
+          path: ~/.elm
+          key: ${{ runner.os }}-elm--home-${{ hashFiles('**/elm.json') }}
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - name: Add yarn bin to path
         run: echo ::add-path::$(yarn bin)
       - name: Run elm-format
+        run: elm-format --yes
+      - name: Run elm-review
+        uses: sparksp/elm-review-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Apply elm-review fixes
+        run: yes | elm-review --fix-all
+        continue-on-error: true
+      - name: Checkout new fixes branch
+        if: ${{ github.event_name == 'pull_request' }}
+        run: git checkout -b fixes/${{ github.head_ref }}
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        if: ${{ github.event_name == 'pull_request' }}
+        id: docs-commit
+        with:
+          branch: fixes/${{ github.head_ref }}
+          file_pattern: src/
+          commit_message: 'Apply elm-review fixes'
+          push_options: --force
+        env:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: repo-sync/pull-request@v2
+        if: ${{ steps.docs-commit.outputs.changes_detected == 'true' }}
+        with:
+          source_branch: fixes/${{ github.head_ref }}
+          destination_branch: ${{ github.head_ref }}
+          pr_title: "Apply elm-review fixes"
+          pr_body: "*This is an automated pull request because elm-review found problems that could be fixed automatically.*"
+          pr_reviewer: sparksp
+          pr_assignee: sparksp
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run elm-format
         uses: sparksp/elm-format-action@v1
 
-  elm-review:
+  docs:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
         with:
-          submodules: recursive
-      - name: Get yarn cache directory
-        id: yarn-cache-dir
-        run: echo "::set-output name=path::$(yarn cache dir)"
-      - uses: actions/cache@v1
-        id: yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir.outputs.path }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      - uses: actions/cache@v1
-        id: elm-cache
-        with:
-          path: ~/.elm
-          key: ${{ runner.os }}-elm--home-${{ hashFiles('**/elm.json') }}
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-      - name: Add yarn bin to path
-        run: echo ::add-path::$(yarn bin)
-      - name: Run elm-review
-        run: elm-review
-
-  elm-analyse:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v1
-        id: npm-cache
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-      - uses: actions/cache@v1
-        id: elm-cache
-        with:
-          path: ~/.elm
-          key: ${{ runner.os }}-elm--home-${{ hashFiles('**/elm.json') }}
-      - name: Run elm-analyse
-        uses: harehare/elm-analyse-action@v1
-
-  elm-build-docs:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-        with:
+          ref: ${{ github.head_ref }}
           submodules: recursive
       - name: Get yarn cache directory
         id: yarn-cache-dir
@@ -148,9 +138,32 @@ jobs:
         run: echo ::add-path::$(yarn bin)
       - name: Build elm docs
         run: elm make --docs docs.json
+      - name: Checkout new docs branch
+        if: ${{ github.event_name == 'pull_request' }}
+        run: git checkout -b docs/${{ github.head_ref }}
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        if: ${{ github.event_name == 'pull_request' }}
+        id: docs-commit
+        with:
+          branch: docs/${{ github.head_ref }}
+          file_pattern: docs.json
+          commit_message: Update docs.json
+          push_options: --force
+        env:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: repo-sync/pull-request@v2
+        if: ${{ steps.docs-commit.outputs.changes_detected == 'true' }}
+        with:
+          source_branch: docs/${{ github.head_ref }}
+          destination_branch: ${{ github.head_ref }}
+          pr_title: "Update docs.json"
+          pr_body: "*This is an automated pull request because we found that the docs were out of date.*"
+          pr_reviewer: sparksp
+          pr_assignee: sparksp
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   elm-publish:
-    needs: [elm-test, elm-format, elm-review, elm-analyse, elm-build-docs]
+    needs: [test, lint, docs]
     runs-on: ubuntu-latest
 
     steps:
@@ -178,6 +191,5 @@ jobs:
         run: echo ::add-path::$(yarn bin)
       - name: Publish package
         uses: dillonkearns/elm-publish-action@1.0.1
-        continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
