@@ -1,6 +1,6 @@
 {
   "name": "elm-review-forbidden-words",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "elm-review rule to forbid certain words in comments.",
   "repository": "https://github.com/sparksp/elm-review-forbidden-words",
   "author": "Phill Sparks <me@phills.me.uk> (https://github.com/sparksp)",
