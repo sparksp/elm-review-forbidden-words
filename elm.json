@@ -3,7 +3,7 @@
     "name": "sparksp/elm-review-forbidden-words",
     "summary": "elm-review rule to forbid certain words in comments.",
     "license": "MIT",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "exposed-modules": [
         "NoForbiddenWords"
     ],
