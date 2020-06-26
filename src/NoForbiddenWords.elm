@@ -6,13 +6,15 @@ module NoForbiddenWords exposing (rule)
 
 -}
 
+import Elm.Project as Project exposing (Project)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Node exposing (Node(..))
-import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Range as Range exposing (Range)
+import Regex exposing (Regex)
 import Review.Rule as Rule exposing (Rule)
 
 
-{-| Forbid certain words in comments and README.
+{-| Forbid certain words in Elm comments, README and elm.json (package summary only).
 
     config : List Rule
     config =
@@ -41,6 +43,7 @@ Multi-line comments `{- ... -}` and documentation `{-| ... -}` also work:
 rule : List String -> Rule
 rule words =
     Rule.newProjectRuleSchema "NoForbiddenWords" ()
+        |> Rule.withElmJsonProjectVisitor (elmJsonVisitor words)
         |> Rule.withReadmeProjectVisitor (readmeVisitor words)
         |> Rule.withModuleVisitor (moduleVisitor words)
         |> Rule.withModuleContext
@@ -52,7 +55,63 @@ rule words =
 
 
 
---- PROJECT
+--- ELM.JSON
+
+
+elmJsonVisitor : List String -> Maybe { elmJsonKey : Rule.ElmJsonKey, project : Project } -> () -> ( List (Rule.Error scope), () )
+elmJsonVisitor words maybeElmJson () =
+    case maybeElmJson of
+        Nothing ->
+            ( [], () )
+
+        Just elmJson ->
+            ( checkElmJson words elmJson, () )
+
+
+checkElmJson : List String -> { elmJsonKey : Rule.ElmJsonKey, project : Project } -> List (Rule.Error scope)
+checkElmJson words { elmJsonKey, project } =
+    case project of
+        Project.Application _ ->
+            []
+
+        Project.Package info ->
+            fastConcatMap (checkElmJsonSummary elmJsonKey info.summary) words
+
+
+checkElmJsonSummary : Rule.ElmJsonKey -> String -> String -> List (Rule.Error scope)
+checkElmJsonSummary elmJsonKey summary word =
+    summary
+        |> stringNode
+        |> ranges word
+        |> List.map (elmJsonSummaryError elmJsonKey word)
+
+
+elmJsonSummaryError : Rule.ElmJsonKey -> String -> Range -> Rule.Error scope
+elmJsonSummaryError elmJsonKey word rangeInSummary =
+    rawElmJsonSummaryError word rangeInSummary
+        |> Rule.errorForElmJson elmJsonKey
+
+
+rawElmJsonSummaryError : String -> Range -> String -> { message : String, details : List String, range : Range }
+rawElmJsonSummaryError word rangeInSummary rawElmJson =
+    { message = "`" ++ word ++ "` is not allowed in elm.json summary."
+    , details =
+        [ "You should review your elm.json and make sure the forbidden word has been removed before publishing your code."
+        ]
+    , range = rawElmJsonSummaryRange rangeInSummary rawElmJson
+    }
+
+
+rawElmJsonSummaryRange : Range -> String -> Range
+rawElmJsonSummaryRange rangeInSummary rawElmJson =
+    rawElmJson
+        |> jsonFieldLocation "summary"
+        |> Maybe.map (rangeAddLocation rangeInSummary)
+        |> Maybe.withDefault startRange
+
+
+
+--- README
 
 
 readmeVisitor : List String -> Maybe { readmeKey : Rule.ReadmeKey, content : String } -> () -> ( List (Rule.Error scope), () )
@@ -69,17 +128,10 @@ readmeVisitor words maybeReadme () =
 
 checkForbiddenReadmeWord : { readmeKey : Rule.ReadmeKey, content : String } -> String -> List (Rule.Error scope)
 checkForbiddenReadmeWord { readmeKey, content } word =
-    ranges word (readmeNode content)
+    content
+        |> stringNode
+        |> ranges word
         |> List.map (forbiddenReadmeWordError readmeKey word)
-
-
-readmeNode : String -> Node String
-readmeNode content =
-    Node
-        { start = { row = 1, column = 1 }
-        , end = { row = 1, column = 1 }
-        }
-        content
 
 
 forbiddenReadmeWordError : Rule.ReadmeKey -> String -> Range -> Rule.Error scope
@@ -145,38 +197,110 @@ checkForbiddenWord comment word =
         |> List.map (forbiddenWordError word)
 
 
+
+--- HELPERS
+
+
+stringNode : String -> Node String
+stringNode string =
+    Node startRange string
+
+
+startRange : Range
+startRange =
+    { start = { row = 1, column = 1 }
+    , end = { row = 1, column = 1 }
+    }
+
+
+rangeAddLocation : Range -> Range.Location -> Range
+rangeAddLocation range start =
+    { start =
+        { row = start.row + range.start.row - 1
+        , column = start.column + range.start.column - 1
+        }
+    , end =
+        { row = start.row + range.end.row - 1
+        , column = start.column + range.end.column - 1
+        }
+    }
+
+
 ranges : String -> Node String -> List Range
 ranges needle (Node range haystack) =
     String.lines haystack
-        |> List.indexedMap
-            (\row line ->
-                String.indexes needle line
-                    |> List.map
-                        (\index ->
-                            if row == 0 then
-                                { start =
-                                    { row = range.start.row
-                                    , column = range.start.column + index
-                                    }
-                                , end =
-                                    { row = range.start.row
-                                    , column = range.start.column + index + String.length needle
-                                    }
-                                }
-
-                            else
-                                { start =
-                                    { row = range.start.row + row
-                                    , column = index + 1
-                                    }
-                                , end =
-                                    { row = range.start.row + row
-                                    , column = index + 1 + String.length needle
-                                    }
-                                }
-                        )
-            )
+        |> List.indexedMap (rangesInLine needle range.start)
         |> fastConcat
+
+
+rangesInLine : String -> Range.Location -> Int -> String -> List Range
+rangesInLine needle start row line =
+    String.indexes needle line
+        |> List.map (rangeFromIndex needle start row)
+
+
+rangeFromIndex : String -> Range.Location -> Int -> Int -> Range
+rangeFromIndex needle start row index =
+    case row of
+        0 ->
+            { start =
+                { row = start.row
+                , column = start.column + index
+                }
+            , end =
+                { row = start.row
+                , column = start.column + index + String.length needle
+                }
+            }
+
+        _ ->
+            { start =
+                { row = start.row + row
+                , column = index + 1
+                }
+            , end =
+                { row = start.row + row
+                , column = index + 1 + String.length needle
+                }
+            }
+
+
+jsonFieldLocation : String -> String -> Maybe Range.Location
+jsonFieldLocation fieldName rawJson =
+    let
+        regex =
+            jsonFieldRegex fieldName
+    in
+    String.lines rawJson
+        |> List.indexedMap (jsonFieldLocationsInLine regex)
+        |> fastConcat
+        |> List.head
+
+
+jsonFieldLocationsInLine : Regex -> Int -> String -> List Range.Location
+jsonFieldLocationsInLine regex row line =
+    Regex.find regex line
+        |> List.map (jsonFieldMatchLocation row)
+
+
+jsonFieldMatchLocation : Int -> Regex.Match -> Range.Location
+jsonFieldMatchLocation row { match, index } =
+    case row of
+        0 ->
+            { row = 1
+            , column = 1 + index + String.length match
+            }
+
+        _ ->
+            { row = row + 1
+            , column = index + 1 + String.length match
+            }
+
+
+jsonFieldRegex : String -> Regex
+jsonFieldRegex fieldName =
+    Regex.fromString ("\"" ++ fieldName ++ "\"\\s?:\\s?\"")
+        |> Maybe.withDefault Regex.never
 
 
 forbiddenWordError : String -> Range -> Rule.Error {}

@@ -1,5 +1,8 @@
 module Tests.NoForbiddenWords exposing (all)
 
+import Elm.Project
+import Json.Decode as Decode
+import Json.Encode as Encode
 import NoForbiddenWords exposing (rule)
 import Review.Project as Project exposing (Project)
 import Review.Rule
@@ -189,7 +192,77 @@ a = 1"""
                             |> Review.Rule.ignoreErrorsForFiles [ "README.md" ]
                         )
                     |> Review.Test.expectNoErrors
+        , test "checks elm.json summary for forbidden words" <|
+            \() ->
+                let
+                    project : Project
+                    project =
+                        Project.new
+                            |> Project.addElmJson
+                                (packageElmJson
+                                    { summary = "REPLACEME"
+                                    , formatted = True
+                                    }
+                                )
+                in
+                """
+module A exposing (..)
+a = 1"""
+                    |> Review.Test.runWithProjectData project (rule [ "REPLACEME" ])
+                    |> Review.Test.expectErrorsForElmJson
+                        [ forbiddenWordErrorForElmJson "REPLACEME"
+                        ]
+        , test "checks minified elm.json summary for forbidden words" <|
+            \() ->
+                let
+                    project : Project
+                    project =
+                        Project.new
+                            |> Project.addElmJson
+                                (packageElmJson
+                                    { summary = "REPLACEME"
+                                    , formatted = False
+                                    }
+                                )
+                in
+                """
+module A exposing (..)
+a = 1"""
+                    |> Review.Test.runWithProjectData project (rule [ "REPLACEME" ])
+                    |> Review.Test.expectErrorsForElmJson
+                        [ forbiddenWordErrorForElmJson "REPLACEME"
+                        ]
         ]
+
+
+packageElmJson : { summary : String, formatted : Bool } -> { path : String, raw : String, project : Elm.Project.Project }
+packageElmJson { summary, formatted } =
+    let
+        spaces =
+            if formatted then
+                4
+
+            else
+                0
+    in
+    Encode.encode spaces
+        (Encode.object
+            [ ( "type", Encode.string "package" )
+            , ( "name", Encode.string "sparksp/elm-review-new-package" )
+            , ( "summary", Encode.string summary )
+            , ( "license", Encode.string "MIT" )
+            , ( "version", Encode.string "1.0.0" )
+            , ( "exposed-modules", Encode.list Encode.string [ "NoNewPackage" ] )
+            , ( "elm-version", Encode.string "0.19.0 <= v < 0.20.0" )
+            , ( "dependencies"
+              , Encode.object
+                    [ ( "elm/code", Encode.string "1.0.5 <= v <= 2.0.0" )
+                    ]
+              )
+            , ( "test-dependencies", Encode.object [] )
+            ]
+        )
+        |> createElmJson
 
 
 forbiddenWordError : String -> Review.Test.ExpectedError
@@ -212,3 +285,36 @@ forbiddenWordErrorForReadme word =
             ]
         , under = word
         }
+
+
+forbiddenWordErrorForElmJson : String -> Review.Test.ExpectedError
+forbiddenWordErrorForElmJson word =
+    Review.Test.error
+        { message = "`" ++ word ++ "` is not allowed in elm.json summary."
+        , details =
+            [ "You should review your elm.json and make sure the forbidden word has been removed before publishing your code."
+            ]
+        , under = word
+        }
+
+
+
+--- HELPERS
+
+
+createElmJson : String -> { path : String, raw : String, project : Elm.Project.Project }
+createElmJson rawElmJson =
+    { path = "elm.json"
+    , raw = rawElmJson
+    , project = createElmJsonProject rawElmJson
+    }
+
+
+createElmJsonProject : String -> Elm.Project.Project
+createElmJsonProject rawElmJson =
+    case Decode.decodeString Elm.Project.decoder rawElmJson of
+        Ok project ->
+            project
+
+        Err error ->
+            Debug.todo ("[elm.json]: " ++ Debug.toString error)
