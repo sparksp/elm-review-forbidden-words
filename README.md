@@ -5,7 +5,7 @@
 ![elm 0.19](https://img.shields.io/badge/elm-0.19-%231293D8)
 ![Tests](https://github.com/sparksp/elm-review-forbidden-words/workflows/Tests/badge.svg)
 
-An [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rule to forbid certain words in comments and README.
+An [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rule to forbid certain words in Elm comments, README and elm.json.
 
 ## Example Configuration
 
@@ -39,6 +39,13 @@ Based on the configured words `"TODO"` and `"- [ ]"` the following examples woul
     - [ ] Tests
     ^^^^^
 -}
+```
+
+```json
+{
+    "summary": "TODO write a summary",
+                ^^^^
+}
 ```
 
 ## Ignore README.md
