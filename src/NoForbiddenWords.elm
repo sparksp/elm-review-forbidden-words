@@ -268,6 +268,7 @@ rangeFromIndex needle start row index =
 jsonFieldLocation : String -> String -> Maybe Range.Location
 jsonFieldLocation fieldName rawJson =
     let
+        regex : Regex
         regex =
             jsonFieldRegex fieldName
     in

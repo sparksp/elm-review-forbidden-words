@@ -21,9 +21,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
+
       - name: Get yarn cache directory
         id: yarn-cache-dir
         run: echo "::set-output name=path::$(yarn cache dir)"
+
       - uses: actions/cache@v1
         id: yarn-cache
         with:
@@ -31,19 +33,25 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+
       - uses: actions/cache@v1
         id: elm-cache
         with:
           path: ~/.elm
           key: ${{ runner.os }}-elm--home-${{ hashFiles('**/elm.json') }}
+
       - name: Install elm ${{ matrix.elm }} and elm-test ${{ matrix.elm-test }}
         run: yarn add elm@${{ matrix.elm }} elm-test@${{ matrix.elm-test }}
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
       - name: Add yarn bin to path
         run: echo ::add-path::$(yarn bin)
+
       - name: Build elm
         run: elm make --output /dev/null
+
       - name: Run elm-test
         run: elm-test
 
@@ -54,9 +62,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
+
       - name: Get yarn cache directory
         id: yarn-cache-dir
         run: echo "::set-output name=path::$(yarn cache dir)"
+
       - uses: actions/cache@v1
         id: yarn-cache
         with:
@@ -64,19 +74,24 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+
       - uses: actions/cache@v1
         id: elm-cache
         with:
           path: ~/.elm
           key: ${{ runner.os }}-elm--home-${{ hashFiles('**/elm.json') }}
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
       - name: Add yarn bin to path
         run: echo ::add-path::$(yarn bin)
+
       - name: Run elm-review
         uses: sparksp/elm-review-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run elm-format
         uses: sparksp/elm-format-action@v1
 
@@ -87,9 +102,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
+
       - name: Get yarn cache directory
         id: yarn-cache-dir
         run: echo "::set-output name=path::$(yarn cache dir)"
+
       - uses: actions/cache@v1
         id: yarn-cache
         with:
@@ -97,15 +114,19 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+
       - uses: actions/cache@v1
         id: elm-cache
         with:
           path: ~/.elm
           key: ${{ runner.os }}-elm--home-${{ hashFiles('**/elm.json') }}
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
       - name: Add yarn bin to path
         run: echo ::add-path::$(yarn bin)
+
       - name: Check docs.json is up to date
         run: |
           elm make --docs docs.json
@@ -120,9 +141,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
+
       - name: Get yarn cache directory
         id: yarn-cache-dir
         run: echo "::set-output name=path::$(yarn cache dir)"
+
       - uses: actions/cache@v1
         id: yarn-cache
         with:
@@ -130,15 +153,22 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+
       - uses: actions/cache@v1
         id: elm-cache
         with:
           path: ~/.elm
           key: ${{ runner.os }}-elm--home-${{ hashFiles('**/elm.json') }}
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
       - name: Add yarn bin to path
         run: echo ::add-path::$(yarn bin)
+
+      - name: Check that examples are up to date
+        run: node elm-review-package-tests/check-examples-were-updated.js
+
       - name: Publish package
         uses: dillonkearns/elm-publish-action@1.0.1
         with:

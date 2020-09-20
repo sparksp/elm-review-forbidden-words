@@ -238,6 +238,7 @@ a = 1"""
 packageElmJson : { summary : String, formatted : Bool } -> { path : String, raw : String, project : Elm.Project.Project }
 packageElmJson { summary, formatted } =
     let
+        spaces : number
         spaces =
             if formatted then
                 4
