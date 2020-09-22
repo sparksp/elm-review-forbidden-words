@@ -1,15 +1,18 @@
-# review-forbidden-words
+# elm-review-forbidden-words
 
 ![elm package](https://img.shields.io/elm-package/v/sparksp/elm-review-forbidden-words)
-![elm-review 2.0](https://img.shields.io/badge/elm--review-2.0-%231293D8)
+![elm-review 2.3](https://img.shields.io/badge/elm--review-2.3-%231293D8)
 ![elm 0.19](https://img.shields.io/badge/elm-0.19-%231293D8)
 ![Tests](https://github.com/sparksp/elm-review-forbidden-words/workflows/Tests/badge.svg)
 
-An [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rule to forbid certain words in Elm comments, README and elm.json.
+Provides an [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rule to forbid certain words in Elm comments, README and elm.json.
 
-## Example Configuration
+
+## Example configuration
 
 ```elm
+module ReviewConfig exposing (config)
+
 import NoForbiddenWords
 import Review.Rule exposing (Rule)
 
@@ -20,6 +23,7 @@ config =
 ```
 
 Note: We search for the exact string that you enter, so if you're looking for "TODO" we won't report "todo".
+
 
 ## Failure Examples
 
@@ -48,6 +52,7 @@ Based on the configured words `"TODO"` and `"- [ ]"` the following examples woul
 }
 ```
 
+
 ## Ignore README.md
 
 You can easily ignore forbidden words in the README file like this:
@@ -61,4 +66,13 @@ config =
     [ NoForbiddenWords.rule [ "TODO", "- [ ]" ]
         |> Rule.ignoreErrorsForFiles [ "README.md" ]
     ]
+```
+
+
+## Try it out
+
+You can try the example configuration above out by running the following command:
+
+```bash
+elm-review --template sparksp/elm-review-forbidden-words/example
 ```
