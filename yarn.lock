@@ -582,10 +582,10 @@ elm-doc-preview@^5.0.3:
     tmp "0.1.0"
     ws "^7.2.3"
 
-elm-format@^0.8.3:
-  version "0.8.3"
-  resolved "https://registry.yarnpkg.com/elm-format/-/elm-format-0.8.3.tgz#74a50a6aba69c757752700f9302ccf463c747453"
-  integrity sha512-shXOgfg8F5hDJagP91zJ3QT0PoMbusPfhgEeu3uRofTaN843cFpjZ8qlQip6pFQxtWyQE/P+NMg3vP6lyWI5Mg==
+elm-format@^0.8.4:
+  version "0.8.4"
+  resolved "https://registry.yarnpkg.com/elm-format/-/elm-format-0.8.4.tgz#8243b6d9eba66708232247e079190a3cdf339dcf"
+  integrity sha512-0KurHC4MBUljdA2Sr+yzcoyAVqCku0LuNpvq5B3UIAlCPZ9PnOW2tUhVnQOCvp9RXngwbnsf18dE48tQ+s8r7g==
   dependencies:
     binwrap "^0.2.2"
 
@@ -596,10 +596,10 @@ elm-json@~0.2.7:
   dependencies:
     binwrap "^0.2.2"
 
-elm-review@^2.3.2:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/elm-review/-/elm-review-2.3.2.tgz#574632dea413ef294975fe1bab690a2b08c02991"
-  integrity sha512-EVVor9azVYNH09Nr+Xo3YlYqa4wllwv0ThFBlvVaX9y01zL7qViQtetsOf7yln3YHoMef94wXMemcp9t/cU3Cw==
+elm-review@^2.3.3:
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/elm-review/-/elm-review-2.3.3.tgz#eb21a306213b0319242bef6e18b6538d05174719"
+  integrity sha512-1TiTnEXzpzACrc/JdB3tvmgNf5Qd0RyX8wbBqPPuc1aWvHHvPf6wi/ncz1gcILFAObr1zquCePkJkoW0uoZiBA==
   dependencies:
     chalk "^4.0.0"
     chokidar "^3.4.0"
