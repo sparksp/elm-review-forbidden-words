@@ -166,8 +166,8 @@ jobs:
       - name: Add yarn bin to path
         run: echo ::add-path::$(yarn bin)
 
-      - name: Check that examples are up to date
-        run: node elm-review-package-tests/check-examples-were-updated.js
+      - name: Check that preview/ compiles
+        run: node elm-review-package-tests/check-previews-compile.js
 
       - name: Publish package
         uses: dillonkearns/elm-publish-action@1.0.1
