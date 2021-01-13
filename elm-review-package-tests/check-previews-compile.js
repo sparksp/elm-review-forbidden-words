@@ -17,7 +17,7 @@ function checkThatExampleCompiles(exampleConfiguration) {
       encoding: 'utf8',
       stdio: 'pipe',
       cwd: path.resolve(__dirname, '..')
-    }).toString();
+    });
     success(exampleConfiguration);
   } catch (error) {
     try {
@@ -41,13 +41,13 @@ and make the necessary changes to make it compile.`
 
       success(exampleConfiguration);
       return;
-    } catch {
+    } catch (nextError) {
       console.log(
         `An error occurred while trying to check whether the ${Ansi.yellow(
           path.relative(root, exampleConfiguration)
         )} configuration compiles.`
       );
-      console.error(error);
+      console.error(nextError);
       process.exit(1);
     }
   }
