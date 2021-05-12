@@ -1,4 +1,0 @@
-[submodule "review"]
-	path = review
-	url = https://github.com/sparksp/elm-review-config.git
-	brach = without-forbidden-words
