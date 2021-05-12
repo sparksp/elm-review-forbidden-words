@@ -170,6 +170,6 @@ jobs:
         run: node elm-review-package-tests/check-previews-compile.js
 
       - name: Publish package
-        uses: dillonkearns/elm-publish-action@1.0.1
+        uses: dillonkearns/elm-publish-action@1.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
