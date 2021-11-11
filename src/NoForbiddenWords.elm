@@ -329,6 +329,6 @@ fastConcatMap fn =
     let
         helper : a -> List b -> List b
         helper item acc =
-            acc ++ fn item
+            fn item ++ acc
     in
     List.foldr helper []
