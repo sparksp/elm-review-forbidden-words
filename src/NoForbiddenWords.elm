@@ -326,4 +326,9 @@ fastConcat =
 
 fastConcatMap : (a -> List b) -> List a -> List b
 fastConcatMap fn =
-    List.foldr (fn >> (++)) []
+    let
+        helper : a -> List b -> List b
+        helper item acc =
+            fn item ++ acc
+    in
+    List.foldr helper []
