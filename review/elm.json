@@ -14,6 +14,7 @@
             "jfmengels/elm-review-debug": "1.0.6",
             "jfmengels/elm-review-documentation": "1.0.3",
             "jfmengels/elm-review-performance": "1.0.1",
+            "jfmengels/elm-review-simplify": "2.0.14",
             "jfmengels/elm-review-the-elm-architecture": "1.0.3",
             "jfmengels/elm-review-unused": "1.1.22",
             "lue-bird/elm-review-record-alias-constructor": "1.1.0",
