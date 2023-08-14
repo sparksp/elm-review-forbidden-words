@@ -94,7 +94,12 @@ config =
     , NoUnused.CustomTypeConstructors.rule []
     , NoUnused.CustomTypeConstructorArgs.rule
     , NoUnused.Dependencies.rule
-    , NoUnused.Exports.rule
+    , NoUnused.Exports.defaults
+        |> NoUnused.Exports.reportUnusedProductionExports
+            { isProductionFile = \{ moduleName, filePath, isInSourceDirectories } -> isInSourceDirectories
+            , exceptionsAre = []
+            }
+        |> NoUnused.Exports.toRule
     , NoUnused.Modules.rule
     , NoUnused.Parameters.rule
     , NoUnused.Patterns.rule
