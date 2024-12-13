@@ -596,10 +596,10 @@ ee-first@1.1.1:
   resolved "https://registry.yarnpkg.com/ee-first/-/ee-first-1.1.1.tgz#590c61156b0ae2f4f0255732a158b266bc56b21d"
   integrity sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==
 
-elm-doc-preview@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/elm-doc-preview/-/elm-doc-preview-6.0.0.tgz#9d16cefb6fc27e6ab9ad457a3e9e436b3cc00645"
-  integrity sha512-L0D12ZAF7JP6i4Ni2s/UhiWqLath95l4l0hAosYpz4YZq+sppZfSaLKa13bmYhRU2SxScBboZNydAMZc1nMJGw==
+elm-doc-preview@^6.0.1:
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/elm-doc-preview/-/elm-doc-preview-6.0.1.tgz#bbdeebeb97135e8bfa78c029520a2a14754db4f7"
+  integrity sha512-G/xgVRKpbLuqliQmBINQFE6I0YAwqET2+SabiyXE47kaVChkhIz91HlZudUvCzTG/CV2ci7AERtAwYzQ4bjOKA==
   dependencies:
     chalk "^5.3.0"
     chokidar "^3.6.0"
