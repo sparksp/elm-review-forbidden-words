@@ -16,7 +16,7 @@
     "elm-review": "^2.13.5",
     "elm-tooling": "^1.17.0",
     "fs-extra": "^11.3.3",
-    "glob": "^13.0.0",
+    "glob": "^13.0.1",
     "npm-run-all-next": "^1.1.2"
   }
 }
