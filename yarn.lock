@@ -1618,10 +1618,10 @@ normalize-url@^6.0.1:
   resolved "https://registry.yarnpkg.com/normalize-url/-/normalize-url-6.1.0.tgz#40d0885b535deffe3f3147bec877d05fe4c5668a"
   integrity sha512-DlL+XwOy3NxAQ8xuC0okPgK46iuVNAK01YN7RueYBqqFeGsBjV9XmCAzAdgt+667bCl5kPh9EqKKDwnaPG1I7A==
 
-npm-run-all-next@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/npm-run-all-next/-/npm-run-all-next-1.3.0.tgz#002a4ce5510b89df725faa971e520fae82994b59"
-  integrity sha512-f8Tkk6qidHHURQBlPgIorWOS5sPHdmOJiOa71+AYcAmW5Yhn2PiIL7E/bqsuRvBeUoHGYAe1i/K6VUVXtf92mQ==
+npm-run-all-next@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/npm-run-all-next/-/npm-run-all-next-1.4.0.tgz#0b2e2cca6f00a309351de613d7e880ba192d73c8"
+  integrity sha512-if3rMA7KeDALRUOGmxyoYG5JFwmFB4sc6DxuzV0F9zMP2X2acmR+ny/18L6kCAAbwOKem/oqOifsfCwTqeH4cA==
   dependencies:
     ansi-styles "5.2.0"
     chalk "^4.1.2"
